@@ -92,8 +92,8 @@ export async function handleError(error: unknown, context?: string): Promise<voi
 export function getTabIcon(url: string): Image.ImageLike {
   try {
     // Special handling for newtab pages - use the extension icon
-    if (url === "newtab" || url.includes("newtab") || url === "chrome://newtab/" || url === "comet://newtab/") {
-      return "comet-icon.png";
+    if (url === "newtab" || url.includes("newtab") || url === "chrome://newtab/" || url === "helium://newtab/") {
+      return "helium-icon.png";
     }
 
     // Use getFavicon from @raycast/utils for real website favicons
