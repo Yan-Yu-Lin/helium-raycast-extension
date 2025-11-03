@@ -18,45 +18,36 @@ export function useHeliumHistoryDB(searchText: string, limit = 100) {
   try {
     const dbPath = getHeliumHistoryPath();
 
-    // Build safe SQL query
-    const searchPattern = searchText.trim().replace(/'/g, "''"); // Basic SQL injection protection
+    // Build SQL-based search query (inspired by Arc extension)
+    // Split search into words and create AND conditions for each
+    const whereClause = searchText.trim()
+      ? searchText
+          .trim()
+          .split(" ")
+          .filter((word) => word.length > 0)
+          .map((term) => {
+            const escapedTerm = term.replace(/'/g, "''"); // SQL injection protection
+            return `(url LIKE '%${escapedTerm}%' OR title LIKE '%${escapedTerm}%')`;
+          })
+          .join(" AND ")
+      : undefined;
 
-    let query: string;
-    if (searchText.trim()) {
-      query = `
-        SELECT 
-          id,
-          url,
-          title,
-          visit_count,
-          last_visit_time,
-          typed_count
-        FROM urls
-        WHERE (
-          title LIKE '%${searchPattern}%' 
-          OR url LIKE '%${searchPattern}%'
-        )
+    const query = `
+      SELECT
+        id,
+        url,
+        title,
+        visit_count,
+        last_visit_time,
+        typed_count
+      FROM urls
+      WHERE ${whereClause || "1=1"}
         AND title != ''
         AND title != 'New Tab'
-        ORDER BY last_visit_time DESC
-        LIMIT ${limit}
-      `;
-    } else {
-      query = `
-        SELECT 
-          id,
-          url,
-          title,
-          visit_count,
-          last_visit_time,
-          typed_count
-        FROM urls
-        WHERE title != ''
-        AND title != 'New Tab'
-        ORDER BY last_visit_time DESC
-        LIMIT ${limit}
-      `;
-    }
+      GROUP BY url
+      ORDER BY last_visit_time DESC
+      LIMIT ${limit}
+    `;
 
     return useSQL<HeliumHistoryEntry>(dbPath, query);
   } catch (error) {

@@ -11,21 +11,18 @@ export default function SearchHelium() {
   const [searchText, setSearchText] = useState("");
 
   const { tabs, isLoading: isLoadingTabs, refresh } = useHeliumTabs();
-  const { data: history, isLoading: isLoadingHistory, error } = useHeliumHistory("", 100); // Increased limit for better unified search
+  // Pass searchText to history hook - SQL will filter in database (top 100 results)
+  const { data: history, isLoading: isLoadingHistory, error } = useHeliumHistory(searchText);
 
   const isLoading = isLoadingTabs || isLoadingHistory;
 
-  // Combine and search tabs and history with search text directly
-  const searchResults = useMemo(() => {
-    return searchEngine.search(searchText, tabs, history);
-  }, [searchText, tabs, history]);
-
-  // Group results by type
+  // Combine tabs and history - history is already filtered by SQL
   const { tabResults, historyResults } = useMemo(() => {
+    const results = searchEngine.search(searchText, tabs, history);
     const tabResults: SearchResult[] = [];
     const historyResults: SearchResult[] = [];
 
-    searchResults.forEach((result) => {
+    results.forEach((result) => {
       if (result.type === "tab") {
         tabResults.push(result);
       } else {
@@ -34,7 +31,9 @@ export default function SearchHelium() {
     });
 
     return { tabResults, historyResults };
-  }, [searchResults]);
+  }, [searchText, tabs, history]);
+
+  const totalResults = tabResults.length + historyResults.length;
 
   if (error) {
     console.warn("History access error:", error);
@@ -46,11 +45,10 @@ export default function SearchHelium() {
       isLoading={isLoading}
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search tabs and history in Helium..."
-      throttle
       searchText={searchText}
       filtering={false}
     >
-      {searchResults.length === 0 && !isLoading ? (
+      {totalResults === 0 && !isLoading ? (
         <List.EmptyView
           icon={Icon.MagnifyingGlass}
           title="No results found"

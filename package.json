@@ -5,7 +5,9 @@
   "description": "Search Helium browser tabs and history with unified search",
   "icon": "helium-icon.png",
   "author": "linyanyu",
-  "categories": ["Productivity"],
+  "categories": [
+    "Productivity"
+  ],
   "license": "MIT",
   "commands": [
     {
@@ -17,9 +19,7 @@
   ],
   "dependencies": {
     "@raycast/api": "^1.102.3",
-    "@raycast/utils": "^1.17.0",
-    "fuse.js": "^7.1.0",
-    "use-debounce": "^10.0.5"
+    "@raycast/utils": "^1.17.0"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^2.0.4",
